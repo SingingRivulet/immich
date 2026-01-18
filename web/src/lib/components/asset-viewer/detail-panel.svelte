@@ -120,6 +120,97 @@
       initialTimeZone: timeZone,
     });
   };
+
+  const PI = Math.PI;
+  const A = 6378245.0;
+  const EE = 0.00669342162296594323;
+
+  function outOfChina(lat, lon) {
+    return lon < 72.004 || lon > 137.8347 || lat < 0.8293 || lat > 55.8271;
+  }
+
+  function transformLat(x, y) {
+    let ret =
+      -100.0 +
+      2.0 * x +
+      3.0 * y +
+      0.2 * y * y +
+      0.1 * x * y +
+      0.2 * Math.sqrt(Math.abs(x));
+    ret +=
+      ((20.0 * Math.sin(6.0 * x * PI) +
+        20.0 * Math.sin(2.0 * x * PI)) *
+        2.0) /
+      3.0;
+    ret +=
+      ((20.0 * Math.sin(y * PI) +
+        40.0 * Math.sin((y / 3.0) * PI)) *
+        2.0) /
+      3.0;
+    ret +=
+      ((160.0 * Math.sin((y / 12.0) * PI) +
+        320 * Math.sin((y * PI) / 30.0)) *
+        2.0) /
+      3.0;
+    return ret;
+  }
+
+  function transformLon(x, y) {
+    let ret =
+      300.0 +
+      x +
+      2.0 * y +
+      0.1 * x * x +
+      0.1 * x * y +
+      0.1 * Math.sqrt(Math.abs(x));
+    ret +=
+      ((20.0 * Math.sin(6.0 * x * PI) +
+        20.0 * Math.sin(2.0 * x * PI)) *
+        2.0) /
+      3.0;
+    ret +=
+      ((20.0 * Math.sin(x * PI) +
+        40.0 * Math.sin((x / 3.0) * PI)) *
+        2.0) /
+      3.0;
+    ret +=
+      ((150.0 * Math.sin((x / 12.0) * PI) +
+        300.0 * Math.sin((x / 30.0) * PI)) *
+        2.0) /
+      3.0;
+    return ret;
+  }
+
+  function wgs84ToGcj02(lat, lon) {
+    if (outOfChina(lat, lon)) {
+      return { lat, lon };
+    }
+    let dLat = transformLat(lon - 105.0, lat - 35.0);
+    let dLon = transformLon(lon - 105.0, lat - 35.0);
+    const radLat = (lat / 180.0) * PI;
+    let magic = Math.sin(radLat);
+    magic = 1 - EE * magic * magic;
+    const sqrtMagic = Math.sqrt(magic);
+    dLat =
+      (dLat * 180.0) /
+      (((A * (1 - EE)) / (magic * sqrtMagic)) * PI);
+    dLon =
+      (dLon * 180.0) /
+      ((A / sqrtMagic) * Math.cos(radLat) * PI);
+    return {
+      lat: lat + dLat,
+      lon: lon + dLon,
+    };
+  }
+  function gcj02ToBd09(lat, lon) {
+    const PI = Math.PI;
+    const z = Math.sqrt(lon * lon + lat * lat) + 0.00002 * Math.sin(lat * PI);
+    const theta = Math.atan2(lat, lon) + 0.000003 * Math.cos(lon * PI);
+    return {
+      lat: z * Math.sin(theta) + 0.006,
+      lon: z * Math.cos(theta) + 0.0065,
+    };
+  }
 </script>
 
 <section class="relative p-2">
@@ -476,6 +567,8 @@
       >
         {#snippet popup({ marker })}
           {@const { lat, lon } = marker}
+          {@const gcj = wgs84ToGcj02(lat, lon)}
+          {@const bd = gcj02ToBd09(gcj.lat, gcj.lon)}
           <div class="flex flex-col items-center gap-1">
             <p class="font-bold">{lat.toPrecision(6)}, {lon.toPrecision(6)}</p>
             <a
@@ -484,6 +577,27 @@
               class="font-medium text-primary underline focus:outline-none"
             >
               {$t('open_in_openstreetmap')}
+            </a>
+            <a
+              href={`https://uri.amap.com/marker?position=${gcj.lon},${gcj.lat}&name=照片位置`}
+              target="_blank"
+              class="font-medium text-primary underline focus:outline-none"
+            >
+              在高德地图中打开
+            </a>
+            <a
+              href={`https://apis.map.qq.com/uri/v1/marker?marker=coord:${gcj.lat},${gcj.lon};title:照片位置`}
+              target="_blank"
+              class="font-medium text-primary underline focus:outline-none"
+            >
+              在腾讯地图中打开
+            </a>
+            <a
+              href={`https://api.map.baidu.com/marker?location=${bd.lat},${bd.lon}&title=照片位置&output=html`}
+              target="_blank"
+              class="font-medium text-primary underline focus:outline-none"
+            >
+              在百度地图中打开
             </a>
           </div>
         {/snippet}
