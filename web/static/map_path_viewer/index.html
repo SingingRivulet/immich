@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <title>OpenStreetMap 路线绘制示例</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Polyline Decorator（箭头） -->
+  <script src="https://unpkg.com/leaflet-polylinedecorator@1.7.0/dist/leaflet.polylineDecorator.min.js"></script>
+
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <script>
+    // ====== 1. 初始化地图 ======
+    const map = L.map('map');
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // ====== 2. 图层容器（用于清理） ======
+    let routeLayer = L.layerGroup().addTo(map);
+
+    // ====== 3. 监听外部消息 ======
+    onmessage = function (e) {
+      const data = e.data?.routeTableData;
+      if (!Array.isArray(data) || data.length === 0) {
+        return;
+      }
+
+      // 清理旧路线
+      routeLayer.clearLayers();
+
+      // 按时间排序（非常重要）
+      const sorted = [...data].sort(
+        (a, b) => new Date(a.dateTime) - new Date(b.dateTime)
+      );
+
+      // 转为 Leaflet 坐标
+      const latlngs = sorted.map(item => [
+        item.latitude,
+        item.longitude
+      ]);
+
+      // ====== 4. 画路线 ======
+      const polyline = L.polyline(latlngs, {
+        color: 'blue',
+        weight: 4,
+        opacity: 0.85
+      }).addTo(routeLayer);
+
+      // ====== 5. 每个点画圆点 + popup ======
+      sorted.forEach((item, index) => {
+        const marker = L.circleMarker(
+          [item.latitude, item.longitude],
+          {
+            radius: 6,
+            color: index === 0
+              ? 'green'
+              : index === sorted.length - 1
+                ? 'red'
+                : 'blue',
+            weight: 2,
+            fillOpacity: 1
+          }
+        ).addTo(routeLayer);
+
+        // popup 内容（点击 icon 跳转）
+        const popupHtml = `
+        <div style="text-align:center">
+          <img
+            src="${item.iconUrl}"
+            style="width:120px;height:auto;cursor:pointer;border-radius:4px"
+            onclick="window.open('${item.imageUrl}', '_blank')"
+          />
+          <div style="font-size:12px;margin-top:4px">
+            ${new Date(item.dateTime).toLocaleString()}
+          </div>
+        </div>
+      `;
+
+        marker.bindPopup(popupHtml);
+      });
+
+      // ====== 6. 自动缩放到完整路线 ======
+      map.fitBounds(polyline.getBounds(), {
+        padding: [40, 40]
+      });
+    };
+  </script>
+</body>
+
+</html>

@@ -144,6 +144,7 @@
     nextPage = 1;
     searchResultAssets = [];
     searchResultAlbums = [];
+    exifInfos = {};
     await loadNextPage(true);
   }
 
@@ -179,7 +180,6 @@
           console.log(error);
         }
       }
-      console.log(exifInfos);
 
       nextPage = Number(assets.nextPage) || 0;
     } catch (error) {
@@ -271,6 +271,7 @@
   }
 
   let showRouteMap = $state(false);
+  let activeTab = $state<'table' | 'map'>('table');
 
   /**
   * 将 exifInfos 转为可渲染、可排序的数组
@@ -287,6 +288,7 @@
           dateTime: exif.dateTimeOriginal,
           latitude: exif.latitude,
           longitude: exif.longitude,
+          city: exif.city,
           imageUrl: asset?.thumbnailPath || asset?.originalPath,
         };
       })
@@ -295,6 +297,31 @@
         (a, b) =>
           new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime(),
       );
+  }
+
+  function updatePathMap(){
+    let map_path_viewer = document.getElementById('map_path_viewer');
+    map_path_viewer.contentWindow.postMessage({
+      routeTableData: Object.entries(exifInfos)
+      .map(([assetId, exif]: any) => {
+        const asset = searchResultAssets.find((a) => a.id === assetId);
+
+        return {
+          assetId,
+          dateTime: exif.dateTimeOriginal,
+          latitude: exif.latitude,
+          longitude: exif.longitude,
+          city: exif.city,
+          imageUrl: "/photos/" + assetId,
+          iconUrl: "/api/assets/" + assetId + "/thumbnail?size=thumbnail&c=&edited=true"
+        };
+      })
+      .filter((row) => row.dateTime)
+      .sort(
+        (a, b) =>
+          new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime(),
+      )
+    })
   }
 
 </script>
@@ -354,49 +381,100 @@
         >
           <Icon icon={mdiClose} size="1.8em" />
         </button>
+        <div class="flex border-b border-gray-200 dark:border-gray-700 pt-16">
+          <button
+            class={`flex-1 py-3 text-center font-medium transition-colors ${
+              activeTab === 'table' 
+                ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400' 
+                : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
+            }`}
+            on:click={() => activeTab = 'table'}
+          >
+            时间线表格
+          </button>
+          <button
+            class={`flex-1 py-3 text-center font-medium transition-colors ${
+              activeTab === 'map' 
+                ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400' 
+                : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
+            }`}
+            on:click={() => {activeTab = 'map';}}
+          >
+            地图视图
+          </button>
+        </div>
         <div class="w-full h-full pt-16 px-6 dark:text-white overflow-auto">
-          {#if routeTableData.length > 0}
-          <table class="min-w-full border border-gray-300 dark:border-gray-700 text-sm">
-            <thead class="bg-gray-100 dark:bg-gray-800">
-              <tr>
-                <th class="px-3 py-2 border">图片</th>
-                <th class="px-3 py-2 border">时间</th>
-                <th class="px-3 py-2 border">纬度</th>
-                <th class="px-3 py-2 border">经度</th>
-              </tr>
-            </thead>
-            <tbody>
-              {#each routeTableData as row}
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
-                  <td class="px-3 py-2 border">
-                    {#if row.imageUrl}
-                      <img
-                        src="/api/assets/{row.assetId}/thumbnail?size=thumbnail&c=&edited=true"
-                        alt="thumb"
-                        class="h-16 w-16 object-cover rounded"
-                        on:click={() => {window.open(`/photos/${row.assetId}`)}}
-                      />
-                    {:else}
-                      —
-                    {/if}
-                  </td>
-                  <td class="px-3 py-2 border">
-                    {getHumanReadableDate(row.dateTime)}
-                  </td>
-                  <td class="px-3 py-2 border">
-                    {row.latitude.toFixed(6)}
-                  </td>
-                  <td class="px-3 py-2 border">
-                    {row.longitude.toFixed(6)}
-                  </td>
-                </tr>
-              {/each}
-            </tbody>
-          </table>
-        {:else}
-          <p class="text-center text-gray-500 mt-10">
-            没有可用于生成路线的数据
-          </p>
+          {#if activeTab === 'table'}
+          <!-- 左侧表格区域 -->
+          <div class="w-full h-[calc(100vh-5rem)] overflow-auto">
+            {#if routeTableData.length > 0}
+              <table class="min-w-full border border-gray-300 dark:border-gray-700 text-sm">
+                <thead class="bg-gray-100 dark:bg-gray-800 sticky top-0">
+                  <tr>
+                    <th class="px-3 py-2 border">图片</th>
+                    <th class="px-3 py-2 border">时间</th>
+                    <th class="px-3 py-2 border">位置</th>
+                    <th class="px-3 py-2 border">坐标</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {#each routeTableData as row}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                      <td class="px-3 py-2 border">
+                        {#if row.imageUrl}
+                          <img
+                            src="/api/assets/{row.assetId}/thumbnail?size=thumbnail&c=&edited=true"
+                            alt="thumb"
+                            class="h-16 w-16 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                            on:click={() => {window.open(`/photos/${row.assetId}`)}}
+                          />
+                        {:else}
+                          —
+                        {/if}
+                      </td>
+                      <td class="px-3 py-2 border">
+                        {getHumanReadableDate(row.dateTime)}
+                      </td>
+                      <td class="px-3 py-2 border">
+                        {row.city || '未知地点'}
+                      </td>
+                      <td class="px-3 py-2 border">
+                        {row.latitude.toFixed(6)}, {row.longitude.toFixed(6)}
+                      </td>
+                    </tr>
+                  {/each}
+                </tbody>
+              </table>
+            {:else}
+              <div class="flex items-center justify-center h-full">
+                <p class="text-center text-gray-500 dark:text-gray-400 text-lg">
+                  没有可用于生成路线的数据
+                </p>
+              </div>
+            {/if}
+          </div>
+        {:else if activeTab === 'map'}
+          <!-- 右侧地图区域 -->
+          <div class="w-full h-[calc(100vh-5rem)]">
+            {#if routeTableData.length > 0}
+              <!-- 使用iframe嵌入地图 -->
+              <iframe
+                src="/map_path_viewer/index.html"
+                class="w-full h-full border-0 rounded-lg"
+                allowfullscreen
+                loading="lazy"
+                title="行程路线地图"
+                id="map_path_viewer"
+                on:load={updatePathMap}
+              />
+            {:else}
+              <div class="flex items-center justify-center h-full">
+                <p class="text-center text-gray-500 dark:text-gray-400 text-lg">
+                  没有可用于显示地图的数据
+                </p>
+              </div>
+            {/if}
+          </div>
         {/if}
           
         </div>
