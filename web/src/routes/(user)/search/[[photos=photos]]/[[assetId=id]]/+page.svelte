@@ -45,7 +45,7 @@
     type SmartSearchDto,
   } from '@immich/sdk';
   import { Icon, IconButton, LoadingSpinner } from '@immich/ui';
-  import { mdiArrowLeft, mdiDotsVertical, mdiImageOffOutline, mdiPlus, mdiSelectAll } from '@mdi/js';
+  import { mdiArrowLeft, mdiDotsVertical, mdiImageOffOutline, mdiPlus, mdiSelectAll, mdiClose } from '@mdi/js';
   import { tick, untrack } from 'svelte';
   import { t } from 'svelte-i18n';
 
@@ -64,6 +64,7 @@
   let isLoading = $state(true);
   let scrollY = $state(0);
   let scrollYHistory = 0;
+  let exifInfos = {};
 
   const assetInteraction = new AssetInteraction();
 
@@ -169,6 +170,16 @@
 
       searchResultAlbums.push(...albums.items);
       searchResultAssets.push(...assets.items);
+      for ( const asset of assets.items) {
+        try{
+          if (asset.exifInfo.latitude && asset.exifInfo.longitude && asset.exifInfo.dateTimeOriginal) {
+            exifInfos[asset.id] = asset.exifInfo;
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      }
+      console.log(exifInfos);
 
       nextPage = Number(assets.nextPage) || 0;
     } catch (error) {
@@ -258,6 +269,34 @@
   function getObjectKeys<T extends object>(obj: T): (keyof T)[] {
     return Object.keys(obj) as (keyof T)[];
   }
+
+  let showRouteMap = $state(false);
+
+  /**
+  * 将 exifInfos 转为可渲染、可排序的数组
+  */
+  let routeTableData = [];
+
+  function updateRouteTableData(){
+    routeTableData = Object.entries(exifInfos)
+      .map(([assetId, exif]: any) => {
+        const asset = searchResultAssets.find((a) => a.id === assetId);
+
+        return {
+          assetId,
+          dateTime: exif.dateTimeOriginal,
+          latitude: exif.latitude,
+          longitude: exif.longitude,
+          imageUrl: asset?.thumbnailPath || asset?.originalPath,
+        };
+      })
+      .filter((row) => row.dateTime)
+      .sort(
+        (a, b) =>
+          new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime(),
+      );
+  }
+
 </script>
 
 <svelte:window bind:scrollY />
@@ -299,6 +338,75 @@
         {/if}
       </div>
     {/each}
+    <div class="ml-auto">
+    <button 
+      class="btn btn-primary hover:bg-immich-dark-primary rounded-full bg-immich-primary transition-all duration-300 text-white py-2 px-4" 
+      on:click={() => {showRouteMap = !showRouteMap;updateRouteTableData();}}>构建行动路线图</button>
+    {#if showRouteMap}
+      <!-- 全屏覆盖层 -->
+      <div class="fixed inset-0 z-50 bg-white dark:bg-gray-900">
+        <!-- 右上角关闭按钮 -->
+        <button
+          on:click={() => showRouteMap = false}
+          class="absolute top-4 right-4 text-gray-600 hover:text-gray-900
+                dark:text-gray-300 dark:hover:text-white"
+          aria-label="Close"
+        >
+          <Icon icon={mdiClose} size="1.8em" />
+        </button>
+        <div class="w-full h-full pt-16 px-6 dark:text-white overflow-auto">
+          {#if routeTableData.length > 0}
+          <table class="min-w-full border border-gray-300 dark:border-gray-700 text-sm">
+            <thead class="bg-gray-100 dark:bg-gray-800">
+              <tr>
+                <th class="px-3 py-2 border">图片</th>
+                <th class="px-3 py-2 border">时间</th>
+                <th class="px-3 py-2 border">纬度</th>
+                <th class="px-3 py-2 border">经度</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each routeTableData as row}
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <td class="px-3 py-2 border">
+                    {#if row.imageUrl}
+                      <img
+                        src="/api/assets/{row.assetId}/thumbnail?size=thumbnail&c=&edited=true"
+                        alt="thumb"
+                        class="h-16 w-16 object-cover rounded"
+                        on:click={() => {window.open(`/photos/${row.assetId}`)}}
+                      />
+                    {:else}
+                      —
+                    {/if}
+                  </td>
+                  <td class="px-3 py-2 border">
+                    {getHumanReadableDate(row.dateTime)}
+                  </td>
+                  <td class="px-3 py-2 border">
+                    {row.latitude.toFixed(6)}
+                  </td>
+                  <td class="px-3 py-2 border">
+                    {row.longitude.toFixed(6)}
+                  </td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        {:else}
+          <p class="text-center text-gray-500 mt-10">
+            没有可用于生成路线的数据
+          </p>
+        {/if}
+          
+        </div>
+      </div>
+      <div
+        class="fixed inset-0 bg-black bg-opacity-30 z-40"
+        on:click={() => showRouteMap = false}
+      ></div>
+    {/if}
+  </div>
   </section>
 {/if}
 
