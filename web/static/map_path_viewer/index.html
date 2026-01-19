@@ -3,14 +3,14 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>OpenStreetMap 路线绘制示例</title>
+  <title>map path viewer</title>
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <!-- Polyline Decorator（箭头） -->
-  <script src="https://unpkg.com/leaflet-polylinedecorator@1.7.0/dist/leaflet.polylineDecorator.min.js"></script>
+  <script src="https://unpkg.com/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
 
   <style>
     html,
@@ -23,6 +23,11 @@
     #map {
       width: 100%;
       height: 100%;
+    }
+    
+    /* 路线线条样式 */
+    .route-line {
+      filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.15));
     }
   </style>
 </head>
@@ -63,39 +68,122 @@
         item.longitude
       ]);
 
-      // ====== 4. 画路线 ======
-      const polyline = L.polyline(latlngs, {
-        color: 'blue',
-        weight: 4,
-        opacity: 0.85
+      // ====== 4. 画主线边框（白色背景线，增强视觉效果） ======
+      const outlineLine = L.polyline(latlngs, {
+        color: '#ffffff',      // 白色边框
+        weight: 10,            // 比主线宽2px
+        opacity: 0.5,          // 半透明
+        lineCap: 'round',      // 圆角端点
+        lineJoin: 'round',     // 圆角连接
+        interactive: false     // 不响应鼠标事件
+      }).addTo(routeLayer);
+      
+      // 将边框移到最底层
+      outlineLine.bringToBack();
+
+      // ====== 5. 画主路线（粗线） ======
+      const mainLine = L.polyline(latlngs, {
+        color: '#3388ff',      // 蓝色主线
+        weight: 8,             // 粗线
+        opacity: 0.85,
+        lineCap: 'round',
+        lineJoin: 'round',
+        className: 'route-line' // 应用CSS类
       }).addTo(routeLayer);
 
-      // ====== 5. 每个点画圆点 + popup ======
+      // ====== 6. 添加密集小箭头（内部箭头） ======
+      const smallArrows = L.polylineDecorator(mainLine, {
+        patterns: [
+          {
+            offset: '0%',           // 从起点开始
+            repeat: '25px',         // 每25像素一个（密集）
+            symbol: L.Symbol.arrowHead({
+              pixelSize: 8,         // 小箭头
+              polygon: true,        // 实心箭头
+              headAngle: 45,        // 箭头角度
+              pathOptions: {
+                stroke: false,      // 无边框
+                fill: true,
+                fillColor: '#ffffff', // 白色箭头
+                fillOpacity: 0.9,
+                weight: 0
+              }
+            })
+          }
+        ]
+      }).addTo(routeLayer);
+
+      // ====== 7. 添加大箭头（更明显，间隔稍大） ======
+      const largeArrows = L.polylineDecorator(mainLine, {
+        patterns: [
+          {
+            offset: '10%',          // 从10%位置开始
+            repeat: '100px',        // 每100像素一个
+            symbol: L.Symbol.arrowHead({
+              pixelSize: 12,        // 中等大小
+              polygon: true,
+              headAngle: 60,
+              pathOptions: {
+                stroke: true,
+                color: '#3388ff',
+                weight: 1,
+                fill: true,
+                fillColor: '#ffffff',
+                fillOpacity: 1
+              }
+            })
+          }
+        ]
+      }).addTo(routeLayer);
+
+      // ====== 8. 每个点画圆点 + popup ======
       sorted.forEach((item, index) => {
+        // 外层圆环
         const marker = L.circleMarker(
           [item.latitude, item.longitude],
           {
-            radius: 6,
+            radius: 7,
             color: index === 0
-              ? 'green'
+              ? '#4CAF50'       // 起点绿色
               : index === sorted.length - 1
-                ? 'red'
-                : 'blue',
+                ? '#F44336'     // 终点红色
+                : '#FFC107',    // 中间点黄色
             weight: 2,
+            fillColor: '#ffffff', // 白色填充
             fillOpacity: 1
+          }
+        ).addTo(routeLayer);
+        
+        // 内层实心圆点
+        L.circleMarker(
+          [item.latitude, item.longitude],
+          {
+            radius: 3,
+            color: 'transparent',
+            fillColor: index === 0
+              ? '#4CAF50'
+              : index === sorted.length - 1
+                ? '#F44336'
+                : '#3388ff',
+            fillOpacity: 1,
+            weight: 0
           }
         ).addTo(routeLayer);
 
         // popup 内容（点击 icon 跳转）
         const popupHtml = `
-        <div style="text-align:center">
+        <div style="text-align:center; min-width: 150px;">
           <img
             src="${item.iconUrl}"
-            style="width:120px;height:auto;cursor:pointer;border-radius:4px"
+            style="width:120px;height:auto;cursor:pointer;border-radius:4px;margin-bottom:8px;"
             onclick="window.open('${item.imageUrl}', '_blank')"
+            alt="点位图片"
           />
-          <div style="font-size:12px;margin-top:4px">
+          <div style="font-size:13px;color:#666;margin-bottom:4px;">
             ${new Date(item.dateTime).toLocaleString()}
+          </div>
+          <div style="font-size:12px;color:#999;">
+            ${index + 1}/${sorted.length}
           </div>
         </div>
       `;
@@ -103,8 +191,8 @@
         marker.bindPopup(popupHtml);
       });
 
-      // ====== 6. 自动缩放到完整路线 ======
-      map.fitBounds(polyline.getBounds(), {
+      // ====== 9. 自动缩放到完整路线 ======
+      map.fitBounds(mainLine.getBounds(), {
         padding: [40, 40]
       });
     };
