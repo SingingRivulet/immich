@@ -144,10 +144,28 @@ export class SyncAssetExifV1 {
   dateTimeOriginal!: Date | null;
   modifyDate!: Date | null;
   timeZone!: string | null;
+
   @ApiProperty({ type: 'number', format: 'double' })
   latitude!: number | null;
+
   @ApiProperty({ type: 'number', format: 'double' })
   longitude!: number | null;
+  
+  @ApiProperty({ type: 'number', format: 'double' })
+  altitude!: number | null;
+
+  @ApiProperty({ type: 'number', format: 'double' })
+  direction!: number | null;
+
+  @ApiProperty({ type: 'number', format: 'double' })
+  yaw!: number | null;
+
+  @ApiProperty({ type: 'number', format: 'double' })
+  pitch!: number | null;
+
+  @ApiProperty({ type: 'number', format: 'double' })
+  roll!: number | null;
+
   projectionType!: string | null;
   city!: string | null;
   state!: string | null;

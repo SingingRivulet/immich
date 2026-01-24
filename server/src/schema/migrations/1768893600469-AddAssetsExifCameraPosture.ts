@@ -12,7 +12,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   await sql`CREATE TABLE "geoembed_search" ("assetId" uuid NOT NULL, "embedding" vector(768) NOT NULL);`.execute(db);
   await sql`ALTER TABLE "geoembed_search" ALTER COLUMN "embedding" SET STORAGE EXTERNAL;`.execute(db);
   await sql`ALTER TABLE "geoembed_search" ADD CONSTRAINT "geoembed_search_pkey" PRIMARY KEY ("assetId");`.execute(db);
-  await sql`ALTER TABLE "geoembed_search" ADD CONSTRAINT "geoembed_search_assetId_fkey" FOREIGN KEY ("assetId") REFERENCES "assets" ("id") ON UPDATE NO ACTION ON DELETE CASCADE;`.execute(db);
+  await sql`ALTER TABLE "geoembed_search" ADD CONSTRAINT "geoembed_search_assetId_fkey" FOREIGN KEY ("assetId") REFERENCES "asset" ("id") ON UPDATE NO ACTION ON DELETE CASCADE;`.execute(db);
   await sql.raw(vectorIndexQuery({ vectorExtension, table: 'geoembed_search', indexName: 'clip_index' })).execute(db);
 }
 

@@ -108,8 +108,7 @@ export class AssetService extends BaseService {
 
   async update(auth: AuthDto, id: string, dto: UpdateAssetDto): Promise<AssetResponseDto> {
     await this.requireAccess({ auth, permission: Permission.AssetUpdate, ids: [id] });
-
-    const { description, dateTimeOriginal, latitude, longitude, rating, ...rest } = dto;
+    const { description, dateTimeOriginal, latitude, longitude, altitude, direction, yaw, pitch, roll, rating, ...rest } = dto;
     const repos = { asset: this.assetRepository, event: this.eventRepository };
 
     let previousMotion: MapAsset | null = null;
@@ -122,7 +121,7 @@ export class AssetService extends BaseService {
       }
     }
 
-    await this.updateExif({ id, description, dateTimeOriginal, latitude, longitude, rating });
+    await this.updateExif({ id, description, dateTimeOriginal, latitude, longitude, altitude, direction, yaw, pitch, roll, rating });
 
     const asset = await this.assetRepository.update({ id, ...rest });
 
@@ -509,9 +508,14 @@ export class AssetService extends BaseService {
     dateTimeOriginal?: string;
     latitude?: number;
     longitude?: number;
+    altitude?: number;
+    direction?: number;
+    yaw?: number;
+    pitch?: number;
+    roll?: number;
     rating?: number;
   }) {
-    const { id, description, dateTimeOriginal, latitude, longitude, rating } = dto;
+    const { id, description, dateTimeOriginal, latitude, longitude, altitude, direction, yaw, pitch, roll, rating } = dto;
     const extractedTimeZone = dateTimeOriginal ? DateTime.fromISO(dateTimeOriginal, { setZone: true }).zone : undefined;
     const writes = _.omitBy(
       {
@@ -520,6 +524,11 @@ export class AssetService extends BaseService {
         timeZone: extractedTimeZone?.type === 'fixed' ? extractedTimeZone.name : undefined,
         latitude,
         longitude,
+        altitude,
+        direction,
+        yaw,
+        pitch,
+        roll,
         rating,
       },
       _.isUndefined,

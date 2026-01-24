@@ -4,6 +4,7 @@ import {
   IsArray,
   IsDateString,
   IsInt,
+  IsNumber,
   IsLatitude,
   IsLongitude,
   IsNotEmpty,
@@ -57,6 +58,34 @@ export class UpdateAssetBase {
   @Max(5)
   @Min(-1)
   rating?: number;
+
+  @Optional()
+  @IsNumber()
+  altitude?: number;
+
+  @Optional()
+  @IsNumber()
+  @Min(0)
+  @Max(360)
+  direction?: number;
+
+  @Optional()
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  yaw?: number;
+
+  @Optional()
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  pitch?: number;
+
+  @Optional()
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  roll?: number;
 
   @Optional()
   @IsString()
