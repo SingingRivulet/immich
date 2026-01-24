@@ -245,8 +245,39 @@ export class MetadataService extends BaseService {
     const { width, height } = this.getImageDimensions(exifTags);
     let geo: ReverseGeocodeResult = { country: null, state: null, city: null },
       latitude: number | null = null,
-      longitude: number | null = null;
+      longitude: number | null = null,
+      altitude: number | null = null,
+      direction: number | null = null,
+      yaw: number | null = null,
+      pitch: number | null = null,
+      roll: number | null = null;
     if (this.hasGeo(exifTags)) {
+      
+      if (exifTags.GPSAltitude !== undefined) {
+        altitude = Number(exifTags.GPSAltitude);
+
+        // EXIF spec: 1 = below sea level
+        if (exifTags.GPSAltitudeRef === 1) {
+          altitude = -altitude;
+        }
+      }
+
+      if (exifTags.GPSImgDirection !== undefined) {
+        direction = Number(exifTags.GPSImgDirection);
+      }
+
+      const userComment = exifTags.UserComment;
+
+      if (typeof userComment === 'string') {
+        const yawMatch = userComment.match(/Yaw:([-\d.]+)/);
+        const pitchMatch = userComment.match(/Pitch:([-\d.]+)/);
+        const rollMatch = userComment.match(/Roll:([-\d.]+)/);
+
+        if (yawMatch) yaw = Number(yawMatch[1]);
+        if (pitchMatch) pitch = Number(pitchMatch[1]);
+        if (rollMatch) roll = Number(rollMatch[1]);
+      }
+
       latitude = Number(exifTags.GPSLatitude);
       longitude = Number(exifTags.GPSLongitude);
       if (reverseGeocoding.enabled) {
@@ -265,6 +296,11 @@ export class MetadataService extends BaseService {
       // gps
       latitude,
       longitude,
+      altitude,
+      direction,
+      yaw,
+      pitch,
+      roll,
       country: geo.country,
       state: geo.state,
       city: geo.city,
