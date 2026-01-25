@@ -488,6 +488,11 @@ export const lockableProperties = [
   'dateTimeOriginal',
   'latitude',
   'longitude',
+  'altitude',
+  'direction',
+  'yaw',
+  'pitch',
+  'roll',
   'rating',
   'timeZone',
 ] as const;

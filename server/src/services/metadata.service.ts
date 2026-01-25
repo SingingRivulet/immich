@@ -463,16 +463,38 @@ export class MetadataService extends BaseService {
     const { sidecarFile } = getAssetFiles(asset.files);
     const sidecarPath = sidecarFile?.path || `${asset.originalPath}.xmp`;
 
-    const { description, dateTimeOriginal, latitude, longitude, rating } = _.pick(
+    const { description, dateTimeOriginal, latitude, longitude, altitude, direction, yaw, pitch, roll, rating } = _.pick(
       {
         description: asset.exifInfo.description,
         dateTimeOriginal: asset.exifInfo.dateTimeOriginal,
         latitude: asset.exifInfo.latitude,
         longitude: asset.exifInfo.longitude,
+        altitude: asset.exifInfo.altitude,
+        direction: asset.exifInfo.direction,
+        yaw: asset.exifInfo.yaw,
+        pitch: asset.exifInfo.pitch,
+        roll: asset.exifInfo.roll,
         rating: asset.exifInfo.rating,
       },
       lockedProperties,
     );
+
+    const userCommentParts: string[] = [];
+
+    if (yaw !== undefined) userCommentParts.push(`Yaw:${yaw}`);
+    if (pitch !== undefined) userCommentParts.push(`Pitch:${pitch}`);
+    if (roll !== undefined) userCommentParts.push(`Roll:${roll}`);
+
+    const userComment =
+      userCommentParts.length > 0 ? userCommentParts.join(';') : undefined;
+    
+    let gpsAltitude: number | undefined;
+    let gpsAltitudeRef: number | undefined;
+
+    if (typeof altitude === 'number') {
+      gpsAltitude = Math.abs(altitude);
+      gpsAltitudeRef = altitude < 0 ? 1 : 0; // EXIF spec
+    }
 
     const exif = _.omitBy(
       <Tags>{
@@ -481,6 +503,14 @@ export class MetadataService extends BaseService {
         DateTimeOriginal: dateTimeOriginal ? String(dateTimeOriginal) : undefined,
         GPSLatitude: latitude,
         GPSLongitude: longitude,
+
+        GPSAltitude: gpsAltitude,
+        GPSAltitudeRef: gpsAltitudeRef,
+
+        GPSImgDirection: direction,
+
+        UserComment: userComment,
+
         Rating: rating,
         TagsList: tags ? tagsList : undefined,
       },
