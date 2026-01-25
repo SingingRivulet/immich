@@ -33,7 +33,7 @@
     mdiInformationOutline,
     mdiPencil,
     mdiPlus,
-    mdiCompass ,
+    mdiNavigation ,
   } from '@mdi/js';
   import { DateTime } from 'luxon';
   import { t } from 'svelte-i18n';
@@ -556,7 +556,9 @@
 
     {#if latlng.direction}
       <div class="flex gap-4 py-4">
-        <div><Icon icon={mdiCompass} size="24" /></div>
+        <div>
+        <Icon icon={mdiNavigation} size="24" style={`transform: rotate(${latlng.direction}deg); transform-origin: 50% 50%;`}/>
+        </div>
         <div>
           <p>
             <span>{`${latlng.direction}°`} {directionLabel(latlng.direction)}</span>
