@@ -33,6 +33,7 @@
     mdiInformationOutline,
     mdiPencil,
     mdiPlus,
+    mdiCompass ,
   } from '@mdi/js';
   import { DateTime } from 'luxon';
   import { t } from 'svelte-i18n';
@@ -66,9 +67,14 @@
     (() => {
       const lat = asset.exifInfo?.latitude;
       const lng = asset.exifInfo?.longitude;
+      const altitude = asset.exifInfo?.altitude;
+      const direction = asset.exifInfo?.direction;
+      const yaw = asset.exifInfo?.yaw;
+      const pitch = asset.exifInfo?.pitch;
+      const roll = asset.exifInfo?.roll;
 
       if (lat && lng) {
-        return { lat: Number(lat.toFixed(7)), lng: Number(lng.toFixed(7)) };
+        return { lat: Number(lat.toFixed(7)), lng: Number(lng.toFixed(7)), altitude, direction, yaw, pitch, roll };
       }
     })(),
   );
@@ -210,6 +216,22 @@
       lat: z * Math.sin(theta) + 0.006,
       lon: z * Math.cos(theta) + 0.0065,
     };
+  }
+  function directionLabel(heading){
+    if (heading === undefined || heading === null) {
+      return null;
+    }
+
+    const deg = ((heading % 360) + 360) % 360;
+
+    if (deg >= 337.5 || deg < 22.5) return 'N';
+    if (deg < 67.5) return 'NE';
+    if (deg < 112.5) return 'E';
+    if (deg < 157.5) return 'SE';
+    if (deg < 202.5) return 'S';
+    if (deg < 247.5) return 'SW';
+    if (deg < 292.5) return 'W';
+    return 'NW';
   }
 </script>
 
@@ -532,6 +554,28 @@
       </div>
     {/if}
 
+    {#if latlng.direction}
+      <div class="flex gap-4 py-4">
+        <div><Icon icon={mdiCompass} size="24" /></div>
+        <div>
+          <p>
+            <span>{`${latlng.direction}°`} {directionLabel(latlng.direction)}</span>
+          </p>
+          <p>
+            {#if latlng.yaw}
+              <span>Yaw:{`${latlng.yaw.toFixed(1)}°`}</span>
+            {/if}
+            {#if latlng.pitch}
+              <span>Pitch:{`${latlng.pitch.toFixed(1)}°`}</span>
+            {/if}
+            {#if latlng.roll}
+              <span>Roll:{`${latlng.roll.toFixed(1)}°`}</span>
+            {/if}
+          </p>
+        </div>
+      </div>
+    {/if}
+
     <DetailPanelLocation {isOwner} {asset} />
   </div>
 </section>
@@ -571,6 +615,9 @@
           {@const bd = gcj02ToBd09(gcj.lat, gcj.lon)}
           <div class="flex flex-col items-center gap-1">
             <p class="font-bold">{lat.toPrecision(6)}, {lon.toPrecision(6)}</p>
+            {#if latlng.altitude}
+              <p>海拔: {latlng.altitude} m</p>
+            {/if}
             <a
               href="https://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom=13#map=15/{lat}/{lon}"
               target="_blank"
