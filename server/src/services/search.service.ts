@@ -113,7 +113,8 @@ export class SearchService extends BaseService {
     }
 
     const userIds = this.getUserIdsToSearch(auth);
-    let embedding;
+    let embedding : string | undefined;
+    let geoembedding : string | undefined;
     if (dto.query) {
       const key = machineLearning.clip.modelName + dto.query + dto.language;
       embedding = this.embeddingCache.get(key);
@@ -132,17 +133,32 @@ export class SearchService extends BaseService {
         throw new BadRequestException(`Asset ${dto.queryAssetId} has no embedding`);
       }
       embedding = assetEmbedding;
+    } else if (dto.queryGeoembedAssetId) {
+      await this.requireAccess({ auth, permission: Permission.AssetRead, ids: [dto.queryGeoembedAssetId] });
+      const getEmbeddingResponse = await this.searchRepository.getGeoEmbedding(dto.queryGeoembedAssetId);
+      const assetEmbedding = getEmbeddingResponse?.embedding;
+      if (!assetEmbedding) {
+        throw new BadRequestException(`Asset ${dto.queryGeoembedAssetId} has no geo embedding`);
+      }
+      geoembedding = assetEmbedding;
     } else {
-      throw new BadRequestException('Either `query` or `queryAssetId` must be set');
+      throw new BadRequestException('Either `query` or `queryAssetId` or `queryGeoembedAssetId` must be set');
     }
-    const page = dto.page ?? 1;
-    const size = dto.size || 100;
-    const { hasNextPage, items } = await this.searchRepository.searchSmart(
-      { page, size },
-      { ...dto, userIds: await userIds, embedding },
-    );
+    if (geoembedding) {
+      const items = await this.searchRepository.searchGeoEmbedding(geoembedding, dto.size || 50);
+      return this.mapResponse(items, null, { auth });
+    } else if (embedding) {
+      const page = dto.page ?? 1;
+      const size = dto.size || 100;
+      const { hasNextPage, items } = await this.searchRepository.searchSmart(
+        { page, size },
+        { ...dto, userIds: await userIds, embedding: embedding },
+      );
 
-    return this.mapResponse(items, hasNextPage ? (page + 1).toString() : null, { auth });
+      return this.mapResponse(items, hasNextPage ? (page + 1).toString() : null, { auth });
+    } else {
+      throw new BadRequestException('Either `embedding` or `geoembedding` must be set');
+    }
   }
 
   async getAssetsByCity(auth: AuthDto): Promise<AssetResponseDto[]> {

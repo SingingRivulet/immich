@@ -309,10 +309,43 @@ export class SearchRepository {
   }
 
   @GenerateSql({
+    params: [
+      { page: 1, size: 50 },
+      {
+        embedding: DummyValue.VECTOR,
+      },
+    ],
+  })
+  async searchGeoEmbedding(
+    embedding: string,
+    size = 50
+  ) : Promise<MapAsset[]> {
+    const q = this.db
+      .selectFrom('asset')
+      .innerJoin(
+        'geoembed_search',
+        'asset.id',
+        'geoembed_search.assetId',
+      )
+      .selectAll('asset')   // ⭐ 关键
+      .orderBy(sql`geoembed_search.embedding <=> ${embedding}`)
+      .limit(size);
+    console.log(q.compile());
+    return await q.execute();
+  }
+
+  @GenerateSql({
     params: [DummyValue.UUID],
   })
   async getEmbedding(assetId: string) {
     return this.db.selectFrom('smart_search').selectAll().where('assetId', '=', assetId).executeTakeFirst();
+  }
+
+  @GenerateSql({
+    params: [DummyValue.UUID],
+  })
+  async getGeoEmbedding(assetId: string) {
+    return this.db.selectFrom('geoembed_search').selectAll().where('assetId', '=', assetId).executeTakeFirst();
   }
 
   @GenerateSql({
@@ -443,6 +476,14 @@ export class SearchRepository {
   async upsert(assetId: string, embedding: string): Promise<void> {
     await this.db
       .insertInto('smart_search')
+      .values({ assetId, embedding })
+      .onConflict((oc) => oc.column('assetId').doUpdateSet((eb) => ({ embedding: eb.ref('excluded.embedding') })))
+      .execute();
+  }
+
+  async upsert_geoembed(assetId: string, embedding: string): Promise<void> {
+    await this.db
+      .insertInto('geoembed_search')
       .values({ assetId, embedding })
       .onConflict((oc) => oc.column('assetId').doUpdateSet((eb) => ({ embedding: eb.ref('excluded.embedding') })))
       .execute();

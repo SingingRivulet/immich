@@ -203,6 +203,10 @@ export class SmartSearchDto extends BaseSearchWithResultsDto {
   @Optional()
   queryAssetId?: string;
 
+  @ValidateUUID({ optional: true })
+  @Optional()
+  queryGeoembedAssetId?: string;
+
   @IsString()
   @IsNotEmpty()
   @Optional()
