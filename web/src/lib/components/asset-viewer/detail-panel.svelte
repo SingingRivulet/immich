@@ -554,7 +554,7 @@
       </div>
     {/if}
 
-    {#if latlng.direction}
+    {#if latlng && latlng.direction}
       <div class="flex gap-4 py-4">
         <div>
         <Icon icon={mdiNavigation} size="24" style={`transform: rotate(${latlng.direction}deg); transform-origin: 50% 50%;`}/>
