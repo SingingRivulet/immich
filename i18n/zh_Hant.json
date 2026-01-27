@@ -1666,6 +1666,7 @@
   "purchase_server_title": "伺服器",
   "purchase_settings_server_activated": "伺服器產品金鑰是由管理者管理的",
   "query_asset_id": "査詢資產 ID",
+  "query_geoembed_asset_id": "空間相似度查詢",
   "queue_status": "處理中 {count}/{total}",
   "rating": "評星",
   "rating_clear": "清除評等",

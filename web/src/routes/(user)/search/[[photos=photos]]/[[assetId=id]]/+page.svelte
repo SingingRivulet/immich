@@ -165,7 +165,7 @@
 
     try {
       const { albums, assets } =
-        ('query' in searchDto || 'queryAssetId' in searchDto) && smartSearchEnabled
+        ('query' in searchDto || 'queryAssetId' in searchDto || 'queryGeoembedAssetId' in searchDto) && smartSearchEnabled
           ? await searchSmart({ smartSearchDto: searchDto })
           : await searchAssets({ metadataSearchDto: searchDto });
 
@@ -221,6 +221,7 @@
       originalFileName: $t('file_name'),
       description: $t('description'),
       queryAssetId: $t('query_asset_id'),
+      queryGeoembedAssetId: $t('query_geoembed_asset_id'),
       ocr: $t('ocr'),
     };
     return keyMap[key] || key;
