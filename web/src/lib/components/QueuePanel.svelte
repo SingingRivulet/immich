@@ -57,7 +57,7 @@
     [QueueName.GeoEmbedSearch]: {
       allText: $t('all'),
       missingText: $t('missing'),
-      disabled: !featureFlags.GeoEmbedSearch,
+      disabled: !featureFlags.geoEmbedSearch,
     },
     [QueueName.DuplicateDetection]: {
       allText: $t('all'),
@@ -92,6 +92,8 @@
       missingText: $t('start'),
     },
   };
+  console.log(queueDetails);
+  console.log(featureFlags);
 
   let queueList = Object.entries(queueDetails) as [QueueName, QueueDetails][];
 

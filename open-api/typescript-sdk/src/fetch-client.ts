@@ -800,6 +800,7 @@ export type QueuesResponseLegacyDto = {
     notifications: QueueResponseLegacyDto;
     ocr: QueueResponseLegacyDto;
     search: QueueResponseLegacyDto;
+    geoEmbedSearch: QueueResponseLegacyDto;
     sidecar: QueueResponseLegacyDto;
     smartSearch: QueueResponseLegacyDto;
     storageTemplateMigration: QueueResponseLegacyDto;
@@ -1301,6 +1302,7 @@ export type ServerFeaturesDto = {
     search: boolean;
     sidecar: boolean;
     smartSearch: boolean;
+    geoEmbedSearch: boolean;
     trash: boolean;
 };
 export type LicenseResponseDto = {
@@ -1537,6 +1539,7 @@ export type SystemConfigJobDto = {
     search: JobSettingsDto;
     sidecar: JobSettingsDto;
     smartSearch: JobSettingsDto;
+    geoEmbedSearch: JobSettingsDto;
     thumbnailGeneration: JobSettingsDto;
     videoConversion: JobSettingsDto;
     workflow: JobSettingsDto;
@@ -5554,6 +5557,7 @@ export enum QueueName {
     FaceDetection = "faceDetection",
     FacialRecognition = "facialRecognition",
     SmartSearch = "smartSearch",
+    GeoEmbedSearch = "geoEmbedSearch",
     DuplicateDetection = "duplicateDetection",
     BackgroundTask = "backgroundTask",
     StorageTemplateMigration = "storageTemplateMigration",
