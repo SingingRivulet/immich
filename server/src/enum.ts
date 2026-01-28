@@ -555,7 +555,7 @@ export enum QueueName {
   FaceDetection = 'faceDetection',
   FacialRecognition = 'facialRecognition',
   SmartSearch = 'smartSearch',
-  GeoEmbedSearch = 'GeoEmbedSearch',
+  GeoEmbedSearch = 'geoEmbedSearch',
   DuplicateDetection = 'duplicateDetection',
   BackgroundTask = 'backgroundTask',
   StorageTemplateMigration = 'storageTemplateMigration',
