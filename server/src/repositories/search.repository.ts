@@ -330,7 +330,7 @@ export class SearchRepository {
       .selectAll('asset')   // ⭐ 关键
       .orderBy(sql`geoembed_search.embedding <=> ${embedding}`)
       .limit(size);
-    console.log(q.compile());
+    // console.log(q.compile());
     return await q.execute();
   }
 

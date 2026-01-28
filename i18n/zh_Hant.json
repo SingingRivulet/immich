@@ -181,6 +181,8 @@
     "machine_learning_smart_search_enabled": "啟用智慧搜尋",
     "machine_learning_smart_search_enabled_description": "如果停用，影像將不會被編碼以進行智慧搜尋。",
     "machine_learning_url_description": "機器學習伺服器的 URL。若提供多個 URL，系統會依序逐一嘗試，直到其中一臺成功回應為止（由前到後）。未回應的伺服器將被暫時忽略，直到其重新上線。",
+    "geoembed_search_job_description": "對項目進行空間理解以用於估計附件的照片",
+    "machine_learning_geoembed_search": "空間結構搜尋",
     "maintenance_settings": "維護",
     "maintenance_settings_description": "將Immich置於維護模式。",
     "maintenance_start": "啟動維護模式",

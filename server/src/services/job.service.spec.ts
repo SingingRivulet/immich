@@ -77,6 +77,10 @@ describe(JobService.name, () => {
         jobs: [],
       },
       {
+        item: { name: JobName.GeoEmbedSearch, data: { id: 'asset-1' } },
+        jobs: [],
+      },
+      {
         item: { name: JobName.AssetDetectFaces, data: { id: 'asset-1' } },
         jobs: [],
       },

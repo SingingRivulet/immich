@@ -65,6 +65,7 @@ describe(QueueService.name, () => {
         [QueueName.SmartSearch]: expected,
         [QueueName.MetadataExtraction]: expected,
         [QueueName.Search]: expected,
+        [QueueName.GeoEmbedSearch]: expected,
         [QueueName.StorageTemplateMigration]: expected,
         [QueueName.Migration]: expected,
         [QueueName.ThumbnailGeneration]: expected,
@@ -143,6 +144,15 @@ describe(QueueService.name, () => {
       await sut.runCommandLegacy(QueueName.SmartSearch, { command: QueueCommand.Start, force: false });
 
       expect(mocks.job.queue).toHaveBeenCalledWith({ name: JobName.SmartSearchQueueAll, data: { force: false } });
+    });
+
+    it('should handle a start geoembed search command', async () => {
+      mocks.job.isActive.mockResolvedValue(false);
+      mocks.job.getJobCounts.mockResolvedValue(factory.queueStatistics());
+
+      await sut.runCommandLegacy(QueueName.GeoEmbedSearch, { command: QueueCommand.Start, force: false });
+
+      expect(mocks.job.queue).toHaveBeenCalledWith({ name: JobName.GeoEmbedSearchQueueAll, data: { force: false } });
     });
 
     it('should handle a start metadata extraction command', async () => {

@@ -54,6 +54,11 @@
       missingText: $t('missing'),
       disabled: !featureFlags.smartSearch,
     },
+    [QueueName.GeoEmbedSearch]: {
+      allText: $t('all'),
+      missingText: $t('missing'),
+      disabled: !featureFlags.GeoEmbedSearch,
+    },
     [QueueName.DuplicateDetection]: {
       allText: $t('all'),
       missingText: $t('missing'),

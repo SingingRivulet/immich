@@ -153,6 +153,7 @@ export const getQueueName = derived(t, ($t) => {
       [QueueName.MetadataExtraction]: $t('admin.metadata_extraction_job'),
       [QueueName.Sidecar]: $t('admin.sidecar_job'),
       [QueueName.SmartSearch]: $t('admin.machine_learning_smart_search'),
+      [QueueName.GeoEmbedSearch]: $t('admin.machine_learning_geoembed_search'),
       [QueueName.DuplicateDetection]: $t('admin.machine_learning_duplicate_detection'),
       [QueueName.FaceDetection]: $t('admin.face_detection'),
       [QueueName.FacialRecognition]: $t('admin.machine_learning_facial_recognition'),

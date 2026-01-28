@@ -37,6 +37,11 @@ describe('/jobs', () => {
         force: false,
       });
 
+      await utils.queueCommand(admin.accessToken, QueueName.GeoEmbedSearch, {
+        command: QueueCommand.Resume,
+        force: false,
+      });
+      
       await utils.queueCommand(admin.accessToken, QueueName.DuplicateDetection, {
         command: QueueCommand.Resume,
         force: false,

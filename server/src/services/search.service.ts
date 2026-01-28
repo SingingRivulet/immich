@@ -115,7 +115,9 @@ export class SearchService extends BaseService {
     const userIds = this.getUserIdsToSearch(auth);
     let embedding : string | undefined;
     let geoembedding : string | undefined;
+    // console.log('Smart search request:', dto);
     if (dto.query) {
+      // console.log('Encoding query:', dto.query);
       const key = machineLearning.clip.modelName + dto.query + dto.language;
       embedding = this.embeddingCache.get(key);
       if (!embedding) {
@@ -126,6 +128,7 @@ export class SearchService extends BaseService {
         this.embeddingCache.set(key, embedding);
       }
     } else if (dto.queryAssetId) {
+      // console.log('Getting embedding for asset:', dto.queryAssetId);
       await this.requireAccess({ auth, permission: Permission.AssetRead, ids: [dto.queryAssetId] });
       const getEmbeddingResponse = await this.searchRepository.getEmbedding(dto.queryAssetId);
       const assetEmbedding = getEmbeddingResponse?.embedding;
@@ -134,6 +137,7 @@ export class SearchService extends BaseService {
       }
       embedding = assetEmbedding;
     } else if (dto.queryGeoembedAssetId) {
+      // console.log('Getting geo embedding for asset:', dto.queryGeoembedAssetId);
       await this.requireAccess({ auth, permission: Permission.AssetRead, ids: [dto.queryGeoembedAssetId] });
       const getEmbeddingResponse = await this.searchRepository.getGeoEmbedding(dto.queryGeoembedAssetId);
       const assetEmbedding = getEmbeddingResponse?.embedding;
@@ -145,9 +149,11 @@ export class SearchService extends BaseService {
       throw new BadRequestException('Either `query` or `queryAssetId` or `queryGeoembedAssetId` must be set');
     }
     if (geoembedding) {
+      // console.log('Performing geo embedding search');
       const items = await this.searchRepository.searchGeoEmbedding(geoembedding, dto.size || 50);
       return this.mapResponse(items, null, { auth });
     } else if (embedding) {
+      // console.log('Performing smart embedding search');
       const page = dto.page ?? 1;
       const size = dto.size || 100;
       const { hasNextPage, items } = await this.searchRepository.searchSmart(

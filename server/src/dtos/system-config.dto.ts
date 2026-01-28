@@ -181,6 +181,12 @@ class SystemConfigJobDto implements Record<ConcurrentQueueName, JobSettingsDto> 
   @ValidateNested()
   @IsObject()
   @Type(() => JobSettingsDto)
+  [QueueName.GeoEmbedSearch]!: JobSettingsDto;
+
+  @ApiProperty({ type: JobSettingsDto })
+  @ValidateNested()
+  @IsObject()
+  @Type(() => JobSettingsDto)
   [QueueName.Migration]!: JobSettingsDto;
 
   @ApiProperty({ type: JobSettingsDto })

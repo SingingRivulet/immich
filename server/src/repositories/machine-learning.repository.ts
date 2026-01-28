@@ -24,6 +24,7 @@ export enum ModelType {
   RECOGNITION = 'recognition',
   TEXTUAL = 'textual',
   VISUAL = 'visual',
+  GEOEMBED = 'geoembed',
   OCR = 'ocr',
 }
 
@@ -40,6 +41,9 @@ export type OcrOptions = ModelOptions & {
 type VisualResponse = { imageHeight: number; imageWidth: number };
 export type ClipVisualRequest = { [ModelTask.SEARCH]: { [ModelType.VISUAL]: ModelOptions } };
 export type ClipVisualResponse = { [ModelTask.SEARCH]: string } & VisualResponse;
+
+export type ClipGeoembedRequest = { [ModelTask.SEARCH]: { [ModelType.GEOEMBED]: ModelOptions } };
+export type ClipGeoembedResponse = { [ModelTask.SEARCH]: string } & VisualResponse;
 
 export type ClipTextualRequest = { [ModelTask.SEARCH]: { [ModelType.TEXTUAL]: ModelOptions } };
 export type ClipTextualResponse = { [ModelTask.SEARCH]: string };
@@ -74,7 +78,7 @@ export interface Face {
 
 export type FacialRecognitionResponse = { [ModelTask.FACIAL_RECOGNITION]: Face[] } & VisualResponse;
 export type DetectedFaces = { faces: Face[] } & VisualResponse;
-export type MachineLearningRequest = ClipVisualRequest | ClipTextualRequest | FacialRecognitionRequest | OcrRequest;
+export type MachineLearningRequest = ClipVisualRequest | ClipTextualRequest | ClipGeoembedRequest | FacialRecognitionRequest | OcrRequest;
 export type TextEncodingOptions = ModelOptions & { language?: string };
 
 @Injectable()
@@ -204,6 +208,12 @@ export class MachineLearningRepository {
       imageWidth: response.imageWidth,
       faces: response[ModelTask.FACIAL_RECOGNITION],
     };
+  }
+
+  async encodeGeoEmbedding(imagePath: string, { modelName }: CLIPConfig) {
+    const request = { [ModelTask.SEARCH]: { [ModelType.GEOEMBED]: { modelName } } };
+    const response = await this.predict<ClipVisualResponse>({ imagePath }, request);
+    return response[ModelTask.SEARCH];
   }
 
   async encodeImage(imagePath: string, { modelName }: CLIPConfig) {

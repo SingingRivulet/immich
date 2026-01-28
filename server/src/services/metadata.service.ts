@@ -273,9 +273,24 @@ export class MetadataService extends BaseService {
         const pitchMatch = userComment.match(/Pitch:([-\d.]+)/);
         const rollMatch = userComment.match(/Roll:([-\d.]+)/);
 
-        if (yawMatch) yaw = Number(yawMatch[1]);
-        if (pitchMatch) pitch = Number(pitchMatch[1]);
-        if (rollMatch) roll = Number(rollMatch[1]);
+        if (yawMatch) {
+          const v = Number(yawMatch[1]);
+          if (!Number.isNaN(v)) {
+            yaw = v;
+          }
+        }
+        if (pitchMatch) {
+          const v = Number(pitchMatch[1]);
+          if (!Number.isNaN(v)) {
+            pitch = v;
+          }
+        }
+        if (rollMatch) {
+          const v = Number(rollMatch[1]);
+          if (!Number.isNaN(v)) {
+            roll = v;
+          }
+        }
       }
 
       latitude = Number(exifTags.GPSLatitude);

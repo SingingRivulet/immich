@@ -41,6 +41,9 @@ export class QueuesResponseLegacyDto implements Record<QueueName, QueueResponseL
   [QueueName.Search]!: QueueResponseLegacyDto;
 
   @ApiProperty({ type: QueueResponseLegacyDto })
+  [QueueName.GeoEmbedSearch]!: QueueResponseLegacyDto;
+
+  @ApiProperty({ type: QueueResponseLegacyDto })
   [QueueName.DuplicateDetection]!: QueueResponseLegacyDto;
 
   @ApiProperty({ type: QueueResponseLegacyDto })

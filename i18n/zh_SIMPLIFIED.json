@@ -181,6 +181,8 @@
     "machine_learning_smart_search_enabled": "启用智能搜索",
     "machine_learning_smart_search_enabled_description": "如果禁用，则不会对图像编码以用于智能搜索。",
     "machine_learning_url_description": "机器学习服务器的 URL。如果提供多个 URL，则将按依次尝试连接每个服务器，直到有一个服务器成功响应为止。不响应的服务器将被暂时忽略，直到它们重新联机。",
+    "geoembed_search_job_description": "对项目进行空间理解以用于估计附件的照片",
+    "machine_learning_geoembed_search": "空间结构搜索",
     "maintenance_settings": "维护模式",
     "maintenance_settings_description": "将Immich置于维护模式。",
     "maintenance_start": "开启维护模式",
