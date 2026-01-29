@@ -63,6 +63,14 @@ export interface SystemConfig {
       enabled: boolean;
       modelName: string;
     };
+    geoclip: {
+      enabled: boolean;
+      modelName: string;
+    };
+    nsfwDetection: {
+      enabled: boolean;
+      modelName: string;
+    };
     duplicateDetection: {
       enabled: boolean;
       maxDistance: number;
@@ -229,6 +237,7 @@ export const defaults = Object.freeze<SystemConfig>({
     [QueueName.FaceDetection]: { concurrency: 2 },
     [QueueName.Search]: { concurrency: 5 },
     [QueueName.GeoEmbedSearch]: { concurrency: 5 },
+    [QueueName.NsfwDetection]: { concurrency: 5 },
     [QueueName.Sidecar]: { concurrency: 5 },
     [QueueName.Library]: { concurrency: 5 },
     [QueueName.Migration]: { concurrency: 5 },
@@ -254,6 +263,14 @@ export const defaults = Object.freeze<SystemConfig>({
     clip: {
       enabled: true,
       modelName: 'ViT-B-32__openai',
+    },
+    geoclip: {
+      enabled: true,
+      modelName: 'sinriv/StreetCLIP-immich',
+    },
+    nsfwDetection: {
+      enabled: true,
+      modelName: 'sinriv/immich-nsfw-detection',
     },
     duplicateDetection: {
       enabled: true,

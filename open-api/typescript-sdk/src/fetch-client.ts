@@ -801,6 +801,7 @@ export type QueuesResponseLegacyDto = {
     ocr: QueueResponseLegacyDto;
     search: QueueResponseLegacyDto;
     geoEmbedSearch: QueueResponseLegacyDto;
+    nsfwDetection: QueueResponseLegacyDto;
     sidecar: QueueResponseLegacyDto;
     smartSearch: QueueResponseLegacyDto;
     storageTemplateMigration: QueueResponseLegacyDto;
@@ -1303,6 +1304,7 @@ export type ServerFeaturesDto = {
     sidecar: boolean;
     smartSearch: boolean;
     geoEmbedSearch: boolean;
+    nsfwDetection: boolean;
     trash: boolean;
 };
 export type LicenseResponseDto = {
@@ -1540,6 +1542,7 @@ export type SystemConfigJobDto = {
     sidecar: JobSettingsDto;
     smartSearch: JobSettingsDto;
     geoEmbedSearch: JobSettingsDto;
+    nsfwDetection: JobSettingsDto;
     thumbnailGeneration: JobSettingsDto;
     videoConversion: JobSettingsDto;
     workflow: JobSettingsDto;
@@ -5558,6 +5561,7 @@ export enum QueueName {
     FacialRecognition = "facialRecognition",
     SmartSearch = "smartSearch",
     GeoEmbedSearch = "geoEmbedSearch",
+    NsfwDetection = "nsfwDetection",
     DuplicateDetection = "duplicateDetection",
     BackgroundTask = "backgroundTask",
     StorageTemplateMigration = "storageTemplateMigration",
@@ -5644,6 +5648,7 @@ export enum JobName {
     NotifyUserSignup = "NotifyUserSignup",
     NotifyAlbumInvite = "NotifyAlbumInvite",
     NotifyAlbumUpdate = "NotifyAlbumUpdate",
+    NsfwDetection = "NsfwDetection",
     UserDelete = "UserDelete",
     UserDeleteCheck = "UserDeleteCheck",
     UserSyncUsage = "UserSyncUsage",

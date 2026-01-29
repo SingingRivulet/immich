@@ -32,6 +32,7 @@ import { SessionService } from 'src/services/session.service';
 import { SharedLinkService } from 'src/services/shared-link.service';
 import { SmartInfoService } from 'src/services/smart-info.service';
 import { GeoEmbedSearchService } from 'src/services/geoembed-search.service';
+import { NsfwDetectionService } from 'src/services/nsfw-detection.service';
 import { StackService } from 'src/services/stack.service';
 import { StorageTemplateService } from 'src/services/storage-template.service';
 import { StorageService } from 'src/services/storage.service';
@@ -83,6 +84,7 @@ export const services = [
   SharedLinkService,
   SmartInfoService,
   GeoEmbedSearchService,
+  NsfwDetectionService,
   StackService,
   StorageService,
   StorageTemplateService,

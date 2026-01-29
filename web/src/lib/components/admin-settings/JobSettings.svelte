@@ -20,6 +20,7 @@
     QueueName.Sidecar,
     QueueName.SmartSearch,
     QueueName.GeoEmbedSearch,
+    QueueName.NsfwDetection,
     QueueName.FaceDetection,
     QueueName.FacialRecognition,
     QueueName.VideoConversion,

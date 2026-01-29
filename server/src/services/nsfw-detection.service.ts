@@ -9,7 +9,7 @@ import { JobItem, JobOf } from 'src/types';
 import { getCLIPModelInfo, isSmartSearchEnabled } from 'src/utils/misc';
 
 @Injectable()
-export class GeoEmbedSearchService extends BaseService{
+export class NsfwDetectionService extends BaseService{
   @OnEvent({ name: 'ConfigInit', workers: [ImmichWorker.Microservices] })
   async onConfigInit({ newConfig }: ArgOf<'ConfigInit'>) {
     await this.init(newConfig);
@@ -64,8 +64,8 @@ export class GeoEmbedSearchService extends BaseService{
     });
   }
 
-  @OnJob({ name: JobName.GeoEmbedSearchQueueAll, queue: QueueName.GeoEmbedSearch })
-  async handleQueueEncodeClip({ force }: JobOf<JobName.GeoEmbedSearchQueueAll>): Promise<JobStatus> {
+  @OnJob({ name: JobName.NsfwDetectionQueueAll, queue: QueueName.NsfwDetection })
+  async handleQueueNsfwDetection({ force }: JobOf<JobName.NsfwDetectionQueueAll>): Promise<JobStatus> {
     const { machineLearning } = await this.getConfig({ withCache: false });
     if (!isSmartSearchEnabled(machineLearning)) {
       return JobStatus.Skipped;
@@ -78,24 +78,24 @@ export class GeoEmbedSearchService extends BaseService{
     // }
 
     let queue: JobItem[] = [];
-    const assets = this.assetJobRepository.streamForEncodeGeoEmbed(force);
+    const assets = this.assetJobRepository.streamForNsfwDetection(force);
     for await (const asset of assets) {
-      queue.push({ name: JobName.GeoEmbedSearch, data: { id: asset.id } });
+      queue.push({ name: JobName.NsfwDetection, data: { id: asset.id } });
       if (queue.length >= JOBS_ASSET_PAGINATION_SIZE) {
         await this.jobRepository.queueAll(queue);
-        console.log('GeoEmbedSearchQueueAll', queue.length);
+        console.log('NsfwDetectionQueueAll', queue.length);
         queue = [];
       }
     }
 
     await this.jobRepository.queueAll(queue);
-    console.log('GeoEmbedSearchQueueAll', queue.length);
+    console.log('NsfwDetectionQueueAll', queue.length);
 
     return JobStatus.Success;
   }
 
-  @OnJob({ name: JobName.GeoEmbedSearch, queue: QueueName.GeoEmbedSearch })
-  async handleEncodeClip({ id }: JobOf<JobName.GeoEmbedSearch>): Promise<JobStatus> {
+  @OnJob({ name: JobName.NsfwDetection, queue: QueueName.NsfwDetection })
+  async handleNsfwDetection({ id }: JobOf<JobName.NsfwDetection>): Promise<JobStatus> {
     const { machineLearning } = await this.getConfig({ withCache: true });
     if (!isSmartSearchEnabled(machineLearning)) {
       return JobStatus.Skipped;

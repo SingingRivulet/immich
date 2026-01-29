@@ -25,6 +25,7 @@ export enum ModelType {
   TEXTUAL = 'textual',
   VISUAL = 'visual',
   GEOEMBED = 'geoembed',
+  NSFW_DETECTION = 'nsfw-detection',
   OCR = 'ocr',
 }
 

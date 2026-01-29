@@ -42,6 +42,7 @@ import { AuditTable } from 'src/schema/tables/audit.table';
 import { FaceSearchTable } from 'src/schema/tables/face-search.table';
 import { GeodataPlacesTable } from 'src/schema/tables/geodata-places.table';
 import { GeoembedSearchTable } from 'src/schema/tables/geoembed-search.table';
+import { NsfwDetectionTable } from 'src/schema/tables/nsfw-detection.table';
 import { LibraryTable } from 'src/schema/tables/library.table';
 import { MemoryAssetAuditTable } from 'src/schema/tables/memory-asset-audit.table';
 import { MemoryAssetTable } from 'src/schema/tables/memory-asset.table';
@@ -101,7 +102,7 @@ export class ImmichDatabase {
     AssetExifTable,
     FaceSearchTable,
     GeodataPlacesTable,
-    GeoembedSearchTable,
+    NsfwDetectionTable,
     LibraryTable,
     MemoryTable,
     MemoryAuditTable,
@@ -201,6 +202,8 @@ export interface DB {
   geodata_places: GeodataPlacesTable;
   
   geoembed_search: GeoembedSearchTable;
+
+  nsfw_detection: NsfwDetectionTable;
 
   library: LibraryTable;
 

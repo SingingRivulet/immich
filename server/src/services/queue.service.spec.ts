@@ -66,6 +66,7 @@ describe(QueueService.name, () => {
         [QueueName.MetadataExtraction]: expected,
         [QueueName.Search]: expected,
         [QueueName.GeoEmbedSearch]: expected,
+        [QueueName.NsfwDetection]: expected,
         [QueueName.StorageTemplateMigration]: expected,
         [QueueName.Migration]: expected,
         [QueueName.ThumbnailGeneration]: expected,
@@ -153,6 +154,15 @@ describe(QueueService.name, () => {
       await sut.runCommandLegacy(QueueName.GeoEmbedSearch, { command: QueueCommand.Start, force: false });
 
       expect(mocks.job.queue).toHaveBeenCalledWith({ name: JobName.GeoEmbedSearchQueueAll, data: { force: false } });
+    });
+
+    it('should handle a start nsfw detection command', async () => {
+      mocks.job.isActive.mockResolvedValue(false);
+      mocks.job.getJobCounts.mockResolvedValue(factory.queueStatistics());
+
+      await sut.runCommandLegacy(QueueName.NsfwDetection, { command: QueueCommand.Start, force: false });
+
+      expect(mocks.job.queue).toHaveBeenCalledWith({ name: JobName.NsfwDetectionQueueAll, data: { force: false } });
     });
 
     it('should handle a start metadata extraction command', async () => {

@@ -187,6 +187,12 @@ class SystemConfigJobDto implements Record<ConcurrentQueueName, JobSettingsDto> 
   @ValidateNested()
   @IsObject()
   @Type(() => JobSettingsDto)
+  [QueueName.NsfwDetection]!: JobSettingsDto;
+
+  @ApiProperty({ type: JobSettingsDto })
+  @ValidateNested()
+  @IsObject()
+  @Type(() => JobSettingsDto)
   [QueueName.Migration]!: JobSettingsDto;
 
   @ApiProperty({ type: JobSettingsDto })
@@ -310,6 +316,16 @@ class SystemConfigMachineLearningDto {
   @ValidateNested()
   @IsObject()
   clip!: CLIPConfig;
+
+  @Type(() => CLIPConfig)
+  @ValidateNested()
+  @IsObject()
+  geoclip!: CLIPConfig;
+
+  @Type(() => CLIPConfig)
+  @ValidateNested()
+  @IsObject()
+  nsfwDetection!: CLIPConfig;
 
   @Type(() => DuplicateDetectionConfig)
   @ValidateNested()

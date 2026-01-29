@@ -556,6 +556,7 @@ export enum QueueName {
   FacialRecognition = 'facialRecognition',
   SmartSearch = 'smartSearch',
   GeoEmbedSearch = 'geoEmbedSearch',
+  NsfwDetection = 'nsfwDetection',
   DuplicateDetection = 'duplicateDetection',
   BackgroundTask = 'backgroundTask',
   StorageTemplateMigration = 'storageTemplateMigration',
@@ -646,6 +647,9 @@ export enum JobName {
 
   GeoEmbedSearchQueueAll = 'GeoEmbedSearchQueueAll',
   GeoEmbedSearch = 'GeoEmbedSearch',
+
+  NsfwDetectionQueueAll = 'NsfwDetectionQueueAll',
+  NsfwDetection = 'NsfwDetection',
 
   StorageTemplateMigration = 'StorageTemplateMigration',
   StorageTemplateMigrationSingle = 'StorageTemplateMigrationSingle',
