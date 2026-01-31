@@ -23,10 +23,10 @@ export class GeoEmbedSearchService extends BaseService{
   @OnEvent({ name: 'ConfigValidate' })
   onConfigValidate({ newConfig }: ArgOf<'ConfigValidate'>) {
     try {
-      getCLIPModelInfo(newConfig.machineLearning.clip.modelName);
+      getCLIPModelInfo(newConfig.machineLearning.geoclip.modelName);
     } catch {
       throw new Error(
-        `Unknown CLIP model: ${newConfig.machineLearning.clip.modelName}. Please check the model name for typos and confirm this is a supported model.`,
+        `Unknown GeoCLIP model: ${newConfig.machineLearning.geoclip.modelName}. Please check the model name for typos and confirm this is a supported model.`,
       );
     }
   }
@@ -36,13 +36,13 @@ export class GeoEmbedSearchService extends BaseService{
       return;
     }
 
-    await this.databaseRepository.withLock(DatabaseLock.CLIPDimSize, async () => {
-      const { dimSize } = getCLIPModelInfo(newConfig.machineLearning.clip.modelName);
-      const dbDimSize = await this.databaseRepository.getDimensionSize('smart_search');
-      this.logger.verbose(`Current database CLIP dimension size is ${dbDimSize}`);
+    await this.databaseRepository.withLock(DatabaseLock.GEOCLIPDimSize, async () => {
+      const { dimSize } = getCLIPModelInfo(newConfig.machineLearning.geoclip.modelName);
+      const dbDimSize = await this.databaseRepository.getDimensionSize('geoembed_search');
+      this.logger.verbose(`Current database GeoCLIP dimension size is ${dbDimSize}`);
 
       const modelChange =
-        oldConfig && oldConfig.machineLearning.clip.modelName !== newConfig.machineLearning.clip.modelName;
+        oldConfig && oldConfig.machineLearning.geoclip.modelName !== newConfig.machineLearning.geoclip.modelName;
       const dimSizeChange = dbDimSize !== dimSize;
       if (!modelChange && !dimSizeChange) {
         return;
@@ -50,13 +50,13 @@ export class GeoEmbedSearchService extends BaseService{
 
       if (dimSizeChange) {
         this.logger.log(
-          `Dimension size of model ${newConfig.machineLearning.clip.modelName} is ${dimSize}, but database expects ${dbDimSize}.`,
+          `Geoembed dimension size of model ${newConfig.machineLearning.geoclip.modelName} is ${dimSize}, but database expects ${dbDimSize}.`,
         );
-        this.logger.log(`Updating database CLIP dimension size to ${dimSize}.`);
-        await this.databaseRepository.setDimensionSize(dimSize);
-        this.logger.log(`Successfully updated database CLIP dimension size from ${dbDimSize} to ${dimSize}.`);
+        this.logger.log(`Updating database Geoembed dimension size to ${dimSize}.`);
+        await this.databaseRepository.setGeoembedDimensionSize(dimSize);
+        this.logger.log(`Successfully updated database Geoembed dimension size from ${dbDimSize} to ${dimSize}.`);
       } else {
-        await this.databaseRepository.deleteAllSearchEmbeddings();
+        await this.databaseRepository.deleteAllGeoEmbeddings();
       }
 
       // TODO: A job to reindex all assets should be scheduled, though user
@@ -71,11 +71,11 @@ export class GeoEmbedSearchService extends BaseService{
       return JobStatus.Skipped;
     }
 
-    // if (force) {
-    //   const { dimSize } = getCLIPModelInfo(machineLearning.clip.modelName);
-    //   // in addition to deleting embeddings, update the dimension size in case it failed earlier
-    //   await this.databaseRepository.setDimensionSize(dimSize);
-    // }
+    if (force) {
+      const { dimSize } = getCLIPModelInfo(machineLearning.geoclip.modelName);
+      // in addition to deleting embeddings, update the dimension size in case it failed earlier
+      await this.databaseRepository.setGeoembedDimensionSize(dimSize);
+    }
 
     let queue: JobItem[] = [];
     const assets = this.assetJobRepository.streamForEncodeGeoEmbed(force);
@@ -83,13 +83,11 @@ export class GeoEmbedSearchService extends BaseService{
       queue.push({ name: JobName.GeoEmbedSearch, data: { id: asset.id } });
       if (queue.length >= JOBS_ASSET_PAGINATION_SIZE) {
         await this.jobRepository.queueAll(queue);
-        console.log('GeoEmbedSearchQueueAll', queue.length);
         queue = [];
       }
     }
 
     await this.jobRepository.queueAll(queue);
-    console.log('GeoEmbedSearchQueueAll', queue.length);
 
     return JobStatus.Success;
   }
@@ -101,31 +99,32 @@ export class GeoEmbedSearchService extends BaseService{
       return JobStatus.Skipped;
     }
 
-    // const asset = await this.assetJobRepository.getForClipEncoding(id);
-    // if (!asset || asset.files.length !== 1) {
-    //   return JobStatus.Failed;
-    // }
+    const asset = await this.assetJobRepository.getForClipEncoding(id);
+    if (!asset || asset.files.length !== 1) {
+      return JobStatus.Failed;
+    }
 
-    // if (asset.visibility === AssetVisibility.Hidden) {
-    //   return JobStatus.Skipped;
-    // }
+    if (asset.visibility === AssetVisibility.Hidden) {
+      return JobStatus.Skipped;
+    }
 
-    // const embedding = await this.machineLearningRepository.encodeImage(asset.files[0].path, machineLearning.clip);
 
-    // if (this.databaseRepository.isBusy(DatabaseLock.CLIPDimSize)) {
-    //   this.logger.verbose(`Waiting for CLIP dimension size to be updated`);
-    //   await this.databaseRepository.wait(DatabaseLock.CLIPDimSize);
-    // }
+    const embedding = await this.machineLearningRepository.encodeImage(asset.files[0].path, machineLearning.geoclip);
 
-    // const newConfig = await this.getConfig({ withCache: true });
-    // if (machineLearning.clip.modelName !== newConfig.machineLearning.clip.modelName) {
-    //   // Skip the job if the model has changed since the embedding was generated.
-    //   return JobStatus.Skipped;
-    // }
+    if (this.databaseRepository.isBusy(DatabaseLock.GEOCLIPDimSize)) {
+      this.logger.verbose(`Waiting for GEOCLIP dimension size to be updated`);
+      await this.databaseRepository.wait(DatabaseLock.GEOCLIPDimSize);
+    }
 
-    // // await this.searchRepository.upsert(asset.id, embedding);
+    const newConfig = await this.getConfig({ withCache: true });
+    if (machineLearning.geoclip.modelName !== newConfig.machineLearning.geoclip.modelName) {
+      // Skip the job if the model has changed since the embedding was generated.
+      return JobStatus.Skipped;
+    }
 
-    // // inference streetclip embedding and store in geoembed search table
+    await this.searchRepository.upsert_geoembed(asset.id, embedding);
+
+    // inference streetclip embedding and store in geoembed search table
 
     return JobStatus.Success;
   }

@@ -129,12 +129,16 @@ function cleanModelName(modelName: string): string {
 }
 
 export function getCLIPModelInfo(modelName: string) {
-  const modelInfo = CLIP_MODEL_INFO[cleanModelName(modelName)];
-  if (!modelInfo) {
-    throw new Error(`Unknown CLIP model: ${modelName}`);
+  let modelInfo = CLIP_MODEL_INFO[cleanModelName(modelName)];
+  if (modelInfo) {
+    return modelInfo;
   }
+  modelInfo = CLIP_MODEL_INFO[modelName];
+  if (modelInfo) {
+    return modelInfo;
+  }
+  throw new Error(`Unknown CLIP model: ${modelName}`);
 
-  return modelInfo;
 }
 
 function sortKeys<T>(target: T): T {

@@ -97,8 +97,6 @@
       missingText: $t('start'),
     },
   };
-  console.log(queueDetails);
-  console.log(featureFlags);
 
   let queueList = Object.entries(queueDetails) as [QueueName, QueueDetails][];
 

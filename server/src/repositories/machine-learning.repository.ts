@@ -211,12 +211,6 @@ export class MachineLearningRepository {
     };
   }
 
-  async encodeGeoEmbedding(imagePath: string, { modelName }: CLIPConfig) {
-    const request = { [ModelTask.SEARCH]: { [ModelType.GEOEMBED]: { modelName } } };
-    const response = await this.predict<ClipVisualResponse>({ imagePath }, request);
-    return response[ModelTask.SEARCH];
-  }
-
   async encodeImage(imagePath: string, { modelName }: CLIPConfig) {
     const request = { [ModelTask.SEARCH]: { [ModelType.VISUAL]: { modelName } } };
     const response = await this.predict<ClipVisualResponse>({ imagePath }, request);

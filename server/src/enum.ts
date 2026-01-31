@@ -700,6 +700,7 @@ export enum DatabaseLock {
   StorageTemplateMigration = 420,
   VersionHistory = 500,
   CLIPDimSize = 512,
+  GEOCLIPDimSize = 512,
   Library = 1337,
   NightlyJobs = 600,
   MediaLocation = 700,
