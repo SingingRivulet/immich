@@ -117,6 +117,8 @@ export const CLIP_MODEL_INFO: Record<string, ModelInfo> = {
   'ViT-gopt-16-SigLIP2-256__webli': { dimSize: 1536 },
   'ViT-gopt-16-SigLIP2-384__webli': { dimSize: 1536 },
   "sinriv/StreetCLIP-immich": { dimSize: 768 },
+  "sinriv/dinov2-immich": { dimSize: 1024 },
+  "sinriv/nsfw_detection_immich": { dimSize: 2 },
 };
 
 type SharpRotationData = {

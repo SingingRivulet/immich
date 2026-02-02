@@ -2215,6 +2215,7 @@
   "view_previous_asset": "檢視上一項",
   "view_qr_code": "檢視 QR code",
   "view_similar_photos": "檢視相似照片",
+  "view_similar_photos_by_geoembed": "檢視相似照片(以地理嵌入為優先)",
   "view_stack": "檢視堆疊",
   "view_user": "顯示使用者",
   "viewer_remove_from_stack": "從堆疊中移除",

@@ -266,11 +266,11 @@ export const defaults = Object.freeze<SystemConfig>({
     },
     geoclip: {
       enabled: true,
-      modelName: 'sinriv/StreetCLIP-immich',
+      modelName: 'sinriv/dinov2-immich',
     },
     nsfwDetection: {
       enabled: true,
-      modelName: 'sinriv/immich-nsfw-detection',
+      modelName: 'sinriv/nsfw_detection_immich',
     },
     duplicateDetection: {
       enabled: true,

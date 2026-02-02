@@ -2215,6 +2215,7 @@
   "view_previous_asset": "查看上一项",
   "view_qr_code": "查看二维码",
   "view_similar_photos": "查看相似照片",
+  "view_similar_photos_by_geoembed": "查看相似照片(空间结构优先)",
   "view_stack": "查看堆叠项目",
   "view_user": "查看用户",
   "viewer_remove_from_stack": "从堆叠中移除",

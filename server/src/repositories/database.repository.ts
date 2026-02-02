@@ -370,6 +370,10 @@ export class DatabaseRepository {
     await sql`truncate ${sql.table('geoembed_search')}`.execute(this.db);
   }
 
+  async deleteAllNSFWDetection(): Promise<void> {
+    await sql`truncate ${sql.table('nsfw_detection')}`.execute(this.db);
+  }
+
   private targetListCount(count: number) {
     if (count < 128_000) {
       return 1;

@@ -489,6 +489,14 @@ export class SearchRepository {
       .execute();
   }
 
+  async upsert_nsfw(assetId: string, score: number, label: string): Promise<void> {
+    await this.db
+      .insertInto('nsfw_detection')
+      .values({ assetId, score, label })
+      .onConflict((oc) => oc.column('assetId').doUpdateSet((eb) => ({ score: eb.ref('excluded.score'), label: eb.ref('excluded.label') })))
+      .execute();
+  }
+
   async getCountries(userIds: string[]): Promise<string[]> {
     const res = await this.getExifField('country', userIds).execute();
     return res.map((row) => row.country!);

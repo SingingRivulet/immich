@@ -23,10 +23,10 @@ export class NsfwDetectionService extends BaseService{
   @OnEvent({ name: 'ConfigValidate' })
   onConfigValidate({ newConfig }: ArgOf<'ConfigValidate'>) {
     try {
-      getCLIPModelInfo(newConfig.machineLearning.clip.modelName);
+      getCLIPModelInfo(newConfig.machineLearning.nsfwDetection.modelName);
     } catch {
       throw new Error(
-        `Unknown CLIP model: ${newConfig.machineLearning.clip.modelName}. Please check the model name for typos and confirm this is a supported model.`,
+        `Unknown nsfw detection model: ${newConfig.machineLearning.nsfwDetection.modelName}. Please check the model name for typos and confirm this is a supported model.`,
       );
     }
   }
@@ -35,33 +35,6 @@ export class NsfwDetectionService extends BaseService{
     if (!isSmartSearchEnabled(newConfig.machineLearning)) {
       return;
     }
-
-    await this.databaseRepository.withLock(DatabaseLock.CLIPDimSize, async () => {
-      const { dimSize } = getCLIPModelInfo(newConfig.machineLearning.clip.modelName);
-      const dbDimSize = await this.databaseRepository.getDimensionSize('smart_search');
-      this.logger.verbose(`Current database CLIP dimension size is ${dbDimSize}`);
-
-      const modelChange =
-        oldConfig && oldConfig.machineLearning.clip.modelName !== newConfig.machineLearning.clip.modelName;
-      const dimSizeChange = dbDimSize !== dimSize;
-      if (!modelChange && !dimSizeChange) {
-        return;
-      }
-
-      if (dimSizeChange) {
-        this.logger.log(
-          `Dimension size of model ${newConfig.machineLearning.clip.modelName} is ${dimSize}, but database expects ${dbDimSize}.`,
-        );
-        this.logger.log(`Updating database CLIP dimension size to ${dimSize}.`);
-        await this.databaseRepository.setDimensionSize(dimSize);
-        this.logger.log(`Successfully updated database CLIP dimension size from ${dbDimSize} to ${dimSize}.`);
-      } else {
-        await this.databaseRepository.deleteAllSearchEmbeddings();
-      }
-
-      // TODO: A job to reindex all assets should be scheduled, though user
-      // confirmation should probably be requested before doing that.
-    });
   }
 
   @OnJob({ name: JobName.NsfwDetectionQueueAll, queue: QueueName.NsfwDetection })
@@ -71,11 +44,10 @@ export class NsfwDetectionService extends BaseService{
       return JobStatus.Skipped;
     }
 
-    // if (force) {
-    //   const { dimSize } = getCLIPModelInfo(machineLearning.clip.modelName);
-    //   // in addition to deleting embeddings, update the dimension size in case it failed earlier
-    //   await this.databaseRepository.setDimensionSize(dimSize);
-    // }
+    if (force) {
+      console.log('NsfwDetection clear all existing nsfw detection records');
+      await this.databaseRepository.deleteAllNSFWDetection();
+    }
 
     let queue: JobItem[] = [];
     const assets = this.assetJobRepository.streamForNsfwDetection(force);
@@ -83,13 +55,11 @@ export class NsfwDetectionService extends BaseService{
       queue.push({ name: JobName.NsfwDetection, data: { id: asset.id } });
       if (queue.length >= JOBS_ASSET_PAGINATION_SIZE) {
         await this.jobRepository.queueAll(queue);
-        console.log('NsfwDetectionQueueAll', queue.length);
         queue = [];
       }
     }
 
     await this.jobRepository.queueAll(queue);
-    console.log('NsfwDetectionQueueAll', queue.length);
 
     return JobStatus.Success;
   }
@@ -101,16 +71,32 @@ export class NsfwDetectionService extends BaseService{
       return JobStatus.Skipped;
     }
 
-    // const asset = await this.assetJobRepository.getForClipEncoding(id);
-    // if (!asset || asset.files.length !== 1) {
-    //   return JobStatus.Failed;
-    // }
+    const asset = await this.assetJobRepository.getForClipEncoding(id);
+    if (!asset || asset.files.length !== 1) {
+      return JobStatus.Failed;
+    }
 
-    // if (asset.visibility === AssetVisibility.Hidden) {
-    //   return JobStatus.Skipped;
-    // }
+    if (asset.visibility === AssetVisibility.Hidden) {
+      return JobStatus.Skipped;
+    }
 
-    // const embedding = await this.machineLearningRepository.encodeImage(asset.files[0].path, machineLearning.clip);
+    const embedding = await this.machineLearningRepository.encodeImage(asset.files[0].path, machineLearning.nsfwDetection);
+
+    try{
+      let res = JSON.parse(embedding);
+      // Math.log(res[0]);
+      let sum = 0;
+      for (let i = 0; i < res.length; i++) {
+        res[i] = Math.exp(res[i]);
+        sum += res[i];
+      }
+      const prob = res[1] / sum;
+      const tag = prob > 0.5 ? 'nsfw' : 'normal';
+      // console.log('NsfwDetection', id, res, prob);
+      await this.searchRepository.upsert_nsfw(asset.id, prob, tag);
+    }catch(e){
+      console.log('NsfwDetection', id, e);
+    }
 
     // if (this.databaseRepository.isBusy(DatabaseLock.CLIPDimSize)) {
     //   this.logger.verbose(`Waiting for CLIP dimension size to be updated`);

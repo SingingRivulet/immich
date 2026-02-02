@@ -1197,6 +1197,7 @@ export type SmartSearchDto = {
     personIds?: string[];
     query?: string;
     queryAssetId?: string;
+    queryGeoembedAssetId?: string;
     rating?: number;
     size?: number;
     state?: string | null;

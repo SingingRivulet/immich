@@ -260,6 +260,11 @@
               onClick={() => goto(Route.search({ queryAssetId: stack?.primaryAssetId ?? asset.id }))}
               text={$t('view_similar_photos')}
             />
+            <MenuOption
+              icon={mdiCompare}
+              onClick={() => goto(Route.search({ queryGeoembedAssetId: stack?.primaryAssetId ?? asset.id }))}
+              text={$t('view_similar_photos_by_geoembed')}
+            />
           {/if}
         {/if}
 

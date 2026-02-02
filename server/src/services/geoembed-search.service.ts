@@ -71,6 +71,8 @@ export class GeoEmbedSearchService extends BaseService{
       return JobStatus.Skipped;
     }
 
+    console.log('GeoEmbedSearchService - handleQueueEncodeClip - force:', force);
+
     if (force) {
       const { dimSize } = getCLIPModelInfo(machineLearning.geoclip.modelName);
       // in addition to deleting embeddings, update the dimension size in case it failed earlier
@@ -78,6 +80,7 @@ export class GeoEmbedSearchService extends BaseService{
     }
 
     let queue: JobItem[] = [];
+    let queuedCount = 0;
     const assets = this.assetJobRepository.streamForEncodeGeoEmbed(force);
     for await (const asset of assets) {
       queue.push({ name: JobName.GeoEmbedSearch, data: { id: asset.id } });
@@ -85,8 +88,10 @@ export class GeoEmbedSearchService extends BaseService{
         await this.jobRepository.queueAll(queue);
         queue = [];
       }
+      queuedCount++;
     }
 
+    console.log(`GeoEmbedSearchService - handleQueueEncodeClip - queuedCount: ${queuedCount}`);
     await this.jobRepository.queueAll(queue);
 
     return JobStatus.Success;
