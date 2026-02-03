@@ -108,6 +108,9 @@ export class AssetExifTable {
   @Column({ type: 'integer', nullable: true })
   rating!: number | null;
 
+  @Column({ type: 'character varying', array: true, nullable: true })
+  tags!: string[] | null;
+
   @UpdateDateColumn({ default: () => 'clock_timestamp()' })
   updatedAt!: Generated<Date>;
 

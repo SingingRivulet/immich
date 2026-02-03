@@ -1,8 +1,6 @@
 <script lang="ts">
   import { afterNavigate, goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { shortcut } from '$lib/actions/shortcut';
-  import AlbumCardGroup from '$lib/components/album-page/album-card-group.svelte';
   import ButtonContextMenu from '$lib/components/shared-components/context-menu/button-context-menu.svelte';
   import ControlAppBar from '$lib/components/shared-components/control-app-bar.svelte';
   import GalleryViewer from '$lib/components/shared-components/gallery-viewer/gallery-viewer.svelte';
@@ -25,7 +23,6 @@
   import type { Viewport } from '$lib/managers/timeline-manager/types';
   import { Route } from '$lib/route';
   import { AssetInteraction } from '$lib/stores/asset-interaction.svelte';
-  import { assetViewingStore } from '$lib/stores/asset-viewing.store';
   import { lang, locale } from '$lib/stores/preferences.store';
   import { preferences, user } from '$lib/stores/user.store';
   import { handlePromiseError } from '$lib/utils';
@@ -49,7 +46,6 @@
   import { tick, untrack } from 'svelte';
   import { t } from 'svelte-i18n';
 
-  let { isViewing: showAssetViewer } = assetViewingStore;
   const viewport: Viewport = $state({ width: 0, height: 0 });
   let searchResultsElement: HTMLElement | undefined = $state();
 
@@ -83,18 +79,6 @@
     terms;
     untrack(() => handlePromiseError(onSearchQueryUpdate()));
   });
-
-  const onEscape = () => {
-    if ($showAssetViewer) {
-      return;
-    }
-
-    if (assetInteraction.selectionActive) {
-      assetInteraction.selectedAssets = [];
-      return;
-    }
-    handlePromiseError(goto(previousRoute));
-  };
 
   $effect(() => {
     if (scrollY) {
@@ -321,7 +305,6 @@
 </script>
 
 <svelte:window bind:scrollY />
-<svelte:document use:shortcut={{ shortcut: { key: 'Escape' }, onShortcut: onEscape }} />
 
 {#if terms}
   <section
@@ -488,16 +471,6 @@
   bind:clientWidth={viewport.width}
   bind:this={searchResultsElement}
 >
-  {#if searchResultAlbums.length > 0}
-    <section>
-      <div class="uppercase ms-6 text-4xl font-medium text-black/70 dark:text-white/80">{$t('albums')}</div>
-      <AlbumCardGroup albums={searchResultAlbums} showDateRange showItemCount />
-
-      <div class="uppercase m-6 text-4xl font-medium text-black/70 dark:text-white/80">
-        {$t('photos_and_videos')}
-      </div>
-    </section>
-  {/if}
   <section id="search-content">
     {#if searchResultAssets.length > 0}
       <GalleryViewer

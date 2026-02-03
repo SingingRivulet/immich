@@ -260,6 +260,7 @@ class BackgroundUploadService {
   Future<UploadTask?> getUploadTask(LocalAsset asset, {String group = kBackupGroup, int? priority}) async {
     final entity = await _storageRepository.getAssetEntityForAsset(asset);
     if (entity == null) {
+      _logger.warning("Asset entity not found for ${asset.id} - ${asset.name}");
       return null;
     }
 
@@ -282,10 +283,16 @@ class BackgroundUploadService {
     }
 
     if (file == null) {
+      _logger.warning("Failed to get file for asset ${asset.id} - ${asset.name}");
       return null;
     }
 
-    final fileName = await _assetMediaRepository.getOriginalFilename(asset.id) ?? asset.name;
+    String fileName = await _assetMediaRepository.getOriginalFilename(asset.id) ?? asset.name;
+    final hasExtension = p.extension(fileName).isNotEmpty;
+    if (!hasExtension) {
+      fileName = p.setExtension(fileName, p.extension(asset.name));
+    }
+
     final originalFileName = entity.isLivePhoto ? p.setExtension(fileName, p.extension(file.path)) : fileName;
 
     String metadata = UploadTaskMetadata(
@@ -307,10 +314,10 @@ class BackgroundUploadService {
       priority: priority,
       isFavorite: asset.isFavorite,
       requiresWiFi: requiresWiFi,
-      cloudId: asset.cloudId,
-      adjustmentTime: asset.adjustmentTime?.toIso8601String(),
-      latitude: asset.latitude?.toString(),
-      longitude: asset.longitude?.toString(),
+      cloudId: entity.isLivePhoto ? null : asset.cloudId,
+      adjustmentTime: entity.isLivePhoto ? null : asset.adjustmentTime?.toIso8601String(),
+      latitude: entity.isLivePhoto ? null : asset.latitude?.toString(),
+      longitude: entity.isLivePhoto ? null : asset.longitude?.toString(),
     );
   }
 
