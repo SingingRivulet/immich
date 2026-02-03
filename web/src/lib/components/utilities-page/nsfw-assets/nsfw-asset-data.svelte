@@ -1,5 +1,6 @@
 <script lang="ts">
   import Thumbnail from '$lib/components/assets/thumbnail/thumbnail.svelte';
+  import { getFileSize } from '$lib/utils/asset-utils';
   import { toTimelineAsset } from '$lib/utils/timeline-util';
   import { type AssetResponseDto } from '@immich/sdk';
 
@@ -29,5 +30,8 @@
   </div>
   <div class="text-center mt-4 px-4 text-sm font-normal truncate" title={asset.originalFileName}>
     {asset.originalFileName}
+  </div>
+  <div class="text-center">
+    <p class="text-primary text-xl font-semibold py-3">{getFileSize(asset, 1)}</p>
   </div>
 </div>

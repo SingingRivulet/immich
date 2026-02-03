@@ -279,6 +279,29 @@ export class SearchRepository {
 
   @GenerateSql({
     params: [
+      100,
+      {
+        takenAfter: DummyValue.DATE,
+        lensModel: DummyValue.STRING,
+        withStacked: true,
+        isFavorite: true,
+        userIds: [DummyValue.UUID],
+      },
+    ],
+  })
+  searchNsfwAssets(size: number, options: LargeAssetSearchOptions) {
+    const orderDirection = (options.orderDirection?.toLowerCase() || 'desc') as OrderByDirection;
+    return searchAssetBuilder(this.db, options)
+      .selectAll('asset')
+      .innerJoin('nsfw_detection', 'asset.id', 'nsfw_detection.assetId')
+      .where('nsfw_detection.score', '>', 0.5)
+      .orderBy('nsfw_detection.score', orderDirection)
+      .limit(size)
+      .execute();
+  }
+
+  @GenerateSql({
+    params: [
       { page: 1, size: 200 },
       {
         takenAfter: DummyValue.DATE,
