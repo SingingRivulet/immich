@@ -482,7 +482,7 @@ export class MetadataService extends BaseService {
     const { sidecarFile } = getAssetFiles(asset.files);
     const sidecarPath = sidecarFile?.path || `${asset.originalPath}.xmp`;
 
-    const { description, dateTimeOriginal, latitude, longitude, altitude, direction, yaw, pitch, roll, rating } = _.pick(
+    const { description, dateTimeOriginal, latitude, longitude, altitude, direction, yaw, pitch, roll, rating, tags } = _.pick(
       {
         description: asset.exifInfo.description,
         dateTimeOriginal: asset.exifInfo.dateTimeOriginal,
